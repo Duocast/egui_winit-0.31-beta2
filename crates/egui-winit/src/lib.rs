@@ -1588,7 +1588,7 @@ fn process_viewport_command(
             } else {
                 // e.g. macOS, Windows
                 // The request went to the display system,
-                // and the actual size will be delivered later with the [`WindowEvent::Resized`].
+                // and the actual size will be delivered later with the [`WindowEvent::SurfaceResized`].
             }
         }
         ViewportCommand::BeginResize(direction) => {
@@ -1760,7 +1760,7 @@ fn process_viewport_command(
 
 /// Build and intitlaize a window.
 ///
-/// Wrapper around `create_winit_window_builder` and `apply_viewport_builder_to_window`.
+/// Wrapper around `create_winit_window_attributes` and `apply_viewport_builder_to_window`.
 ///
 /// # Errors
 /// Possible causes of error include denied permission, incompatible system, and lack of memory.
@@ -1992,7 +1992,7 @@ fn to_winit_icon(icon: &egui::IconData) -> Option<winit::icon::Icon> {
     }
 }
 
-/// Applies what `create_winit_window_builder` couldn't
+/// Applies what `create_winit_window_attributes` couldn't.
 pub fn apply_viewport_builder_to_window(
     egui_ctx: &egui::Context,
     window: &dyn Window,
@@ -2005,7 +2005,7 @@ pub fn apply_viewport_builder_to_window(
     }
 
     {
-        // In `create_winit_window_builder` we didn't know
+        // In `create_winit_window_attributes` we didn't know
         // on what monitor the window would appear, so we didn't know
         // how to translate egui ui point to native physical pixels.
         // Now we do know:
