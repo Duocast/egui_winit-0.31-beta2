@@ -181,7 +181,8 @@ fn find_active_monitor(
     };
 
     for monitor in monitors {
-        let window_size_px = window_size_pts * (egui_zoom_factor * monitor.scale_factor() as f32);
+        let monitor_scale: f32 = monitor.scale_factor() as f32;
+        let window_size_px = window_size_pts * (egui_zoom_factor * monitor_scale);
         let pos = monitor_position(&monitor);
         let size = monitor_size(&monitor);
         let monitor_x_range = (pos.x - window_size_px.x as i32)..(pos.x + size.width as i32);
