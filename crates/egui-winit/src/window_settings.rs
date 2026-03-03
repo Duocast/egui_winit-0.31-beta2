@@ -20,7 +20,10 @@ pub struct WindowSettings {
 }
 
 impl WindowSettings {
-    pub fn from_window(egui_zoom_factor: f32, window: &dyn winit::window::Window) -> Self {
+    pub fn from_window(
+        egui_zoom_factor: f32,
+        window: &(impl winit::window::Window + ?Sized),
+    ) -> Self {
         let inner_size_points = window
             .surface_size()
             .to_logical::<f32>(egui_zoom_factor as f64 * window.scale_factor());
@@ -56,7 +59,7 @@ impl WindowSettings {
     pub fn initialize_viewport_builder(
         &self,
         egui_zoom_factor: f32,
-        event_loop: &dyn winit::event_loop::ActiveEventLoop,
+        event_loop: &(impl winit::event_loop::ActiveEventLoop + ?Sized),
         mut viewport_builder: ViewportBuilder,
     ) -> ViewportBuilder {
         profiling::function_scope!();
@@ -90,7 +93,7 @@ impl WindowSettings {
         viewport_builder
     }
 
-    pub fn initialize_window(&self, window: &dyn winit::window::Window) {
+    pub fn initialize_window(&self, window: &(impl winit::window::Window + ?Sized)) {
         if cfg!(target_os = "macos") {
             // Mac sometimes has problems restoring the window to secondary monitors
             // using only `WindowBuilder::with_position`, so we need this extra step:
@@ -118,7 +121,7 @@ impl WindowSettings {
     pub fn clamp_position_to_monitors(
         &mut self,
         egui_zoom_factor: f32,
-        event_loop: &dyn winit::event_loop::ActiveEventLoop,
+        event_loop: &(impl winit::event_loop::ActiveEventLoop + ?Sized),
     ) {
         // If the app last ran on two monitors and only one is now connected, then
         // the given position is invalid.
@@ -162,7 +165,7 @@ fn monitor_size(monitor: &winit::monitor::MonitorHandle) -> winit::dpi::Physical
 
 fn find_active_monitor(
     egui_zoom_factor: f32,
-    event_loop: &dyn winit::event_loop::ActiveEventLoop,
+    event_loop: &(impl winit::event_loop::ActiveEventLoop + ?Sized),
     window_size_pts: egui::Vec2,
     position_px: &egui::Pos2,
 ) -> Option<winit::monitor::MonitorHandle> {
@@ -196,7 +199,7 @@ fn find_active_monitor(
 
 fn clamp_pos_to_monitors(
     egui_zoom_factor: f32,
-    event_loop: &dyn winit::event_loop::ActiveEventLoop,
+    event_loop: &(impl winit::event_loop::ActiveEventLoop + ?Sized),
     window_size_pts: egui::Vec2,
     position_px: &mut egui::Pos2,
 ) {

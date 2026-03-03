@@ -34,7 +34,7 @@ use winit::{
 
 use winit::cursor::CursorIcon as WinitCursorIcon;
 
-pub fn screen_size_in_pixels(window: &dyn Window) -> egui::Vec2 {
+pub fn screen_size_in_pixels(window: &(impl Window + ?Sized)) -> egui::Vec2 {
     let size = if cfg!(target_os = "ios") {
         // `outer_size` Includes the area behind the "dynamic island".
         // It is up to the eframe user to make sure the dynamic island doesn't cover anything important.
@@ -47,7 +47,7 @@ pub fn screen_size_in_pixels(window: &dyn Window) -> egui::Vec2 {
 }
 
 /// Calculate the `pixels_per_point` for a given window, given the current egui zoom factor
-pub fn pixels_per_point(egui_ctx: &egui::Context, window: &dyn Window) -> f32 {
+pub fn pixels_per_point(egui_ctx: &egui::Context, window: &(impl Window + ?Sized)) -> f32 {
     let native_pixels_per_point = window.scale_factor() as f32;
     let egui_zoom_factor = egui_ctx.zoom_factor();
     egui_zoom_factor * native_pixels_per_point
@@ -161,8 +161,8 @@ impl State {
     #[cfg(feature = "accesskit")]
     pub fn init_accesskit(
         &mut self,
-        _event_loop: &dyn ActiveEventLoop,
-        _window: &dyn Window,
+        _event_loop: &(impl ActiveEventLoop + ?Sized),
+        _window: &(impl Window + ?Sized),
         _event_loop_proxy: winit::event_loop::EventLoopProxy,
     ) {
         profiling::function_scope!();
@@ -224,7 +224,7 @@ impl State {
     /// You need to set [`egui::RawInput::viewports`] yourself though.
     /// Use [`update_viewport_info`] to update the info for each
     /// viewport.
-    pub fn take_egui_input(&mut self, window: &dyn Window) -> egui::RawInput {
+    pub fn take_egui_input(&mut self, window: &(impl Window + ?Sized)) -> egui::RawInput {
         profiling::function_scope!();
 
         self.egui_input.time = Some(self.start_time.elapsed().as_secs_f64());
@@ -276,7 +276,7 @@ impl State {
     /// The result can be found in [`Self::egui_input`] and be extracted with [`Self::take_egui_input`].
     pub fn on_window_event(
         &mut self,
-        window: &dyn Window,
+        window: &(impl Window + ?Sized),
         event: &winit::event::WindowEvent,
     ) -> EventResponse {
         profiling::function_scope!(short_window_event_description(event));
@@ -756,7 +756,7 @@ impl State {
 
     fn on_cursor_moved(
         &mut self,
-        window: &dyn Window,
+        window: &(impl Window + ?Sized),
         pos_in_pixels: winit::dpi::PhysicalPosition<f64>,
     ) {
         let pixels_per_point = pixels_per_point(&self.egui_ctx, window);
@@ -791,7 +791,7 @@ impl State {
     /// Handle touch move events from winit 0.31 PointerMoved with Touch source.
     fn on_touch_moved(
         &mut self,
-        window: &dyn Window,
+        window: &(impl Window + ?Sized),
         finger_id: winit::event::FingerId,
         position: winit::dpi::PhysicalPosition<f64>,
         force: Option<winit::event::Force>,
@@ -823,7 +823,7 @@ impl State {
     /// Handle touch press/release events from winit 0.31 PointerButton with Touch source.
     fn on_touch_button(
         &mut self,
-        window: &dyn Window,
+        window: &(impl Window + ?Sized),
         finger_id: winit::event::FingerId,
         state: winit::event::ElementState,
         position: winit::dpi::PhysicalPosition<f64>,
@@ -876,7 +876,7 @@ impl State {
 
     fn on_mouse_wheel(
         &mut self,
-        window: &dyn Window,
+        window: &(impl Window + ?Sized),
         delta: winit::event::MouseScrollDelta,
         phase: winit::event::TouchPhase,
     ) {
@@ -1017,7 +1017,7 @@ impl State {
     /// *
     pub fn handle_platform_output(
         &mut self,
-        window: &dyn Window,
+        window: &(impl Window + ?Sized),
         platform_output: egui::PlatformOutput,
     ) {
         profiling::function_scope!();
@@ -1093,7 +1093,7 @@ impl State {
         let _ = accesskit_update;
     }
 
-    fn set_cursor_icon(&mut self, window: &dyn Window, cursor_icon: egui::CursorIcon) {
+    fn set_cursor_icon(&mut self, window: &(impl Window + ?Sized), cursor_icon: egui::CursorIcon) {
         if self.current_cursor_icon == Some(cursor_icon) {
             // Prevent flickering near frame boundary when Windows OS tries to control cursor icon for window resizing.
             // On other platforms: just early-out to save CPU.
@@ -1133,7 +1133,10 @@ fn to_egui_theme(theme: winit::window::Theme) -> Theme {
     }
 }
 
-pub fn inner_rect_in_points(window: &dyn Window, pixels_per_point: f32) -> Option<Rect> {
+pub fn inner_rect_in_points(
+    window: &(impl Window + ?Sized),
+    pixels_per_point: f32,
+) -> Option<Rect> {
     let inner_pos_px = window.surface_position();
     let inner_pos_px = egui::pos2(inner_pos_px.x as f32, inner_pos_px.y as f32);
 
@@ -1145,7 +1148,10 @@ pub fn inner_rect_in_points(window: &dyn Window, pixels_per_point: f32) -> Optio
     Some(inner_rect_px / pixels_per_point)
 }
 
-pub fn outer_rect_in_points(window: &dyn Window, pixels_per_point: f32) -> Option<Rect> {
+pub fn outer_rect_in_points(
+    window: &(impl Window + ?Sized),
+    pixels_per_point: f32,
+) -> Option<Rect> {
     let outer_pos_px = window.outer_position().ok()?;
     let outer_pos_px = egui::pos2(outer_pos_px.x as f32, outer_pos_px.y as f32);
 
@@ -1165,7 +1171,7 @@ pub fn outer_rect_in_points(window: &dyn Window, pixels_per_point: f32) -> Optio
 pub fn update_viewport_info(
     viewport_info: &mut ViewportInfo,
     egui_ctx: &egui::Context,
-    window: &dyn Window,
+    window: &(impl Window + ?Sized),
     is_init: bool,
 ) {
     profiling::function_scope!();
@@ -1527,7 +1533,7 @@ pub fn process_viewport_commands(
     egui_ctx: &egui::Context,
     info: &mut ViewportInfo,
     commands: impl IntoIterator<Item = ViewportCommand>,
-    window: &dyn Window,
+    window: &(impl Window + ?Sized),
     actions_requested: &mut Vec<ActionRequested>,
 ) {
     for command in commands {
@@ -1537,7 +1543,7 @@ pub fn process_viewport_commands(
 
 fn process_viewport_command(
     egui_ctx: &egui::Context,
-    window: &dyn Window,
+    window: &(impl Window + ?Sized),
     command: ViewportCommand,
     info: &mut ViewportInfo,
     actions_requested: &mut Vec<ActionRequested>,
@@ -1766,7 +1772,7 @@ fn process_viewport_command(
 /// Possible causes of error include denied permission, incompatible system, and lack of memory.
 pub fn create_window(
     egui_ctx: &egui::Context,
-    event_loop: &dyn ActiveEventLoop,
+    event_loop: &(impl ActiveEventLoop + ?Sized),
     viewport_builder: &ViewportBuilder,
 ) -> Result<Box<dyn Window>, winit::error::RequestError> {
     profiling::function_scope!();
@@ -1995,7 +2001,7 @@ fn to_winit_icon(icon: &egui::IconData) -> Option<winit::icon::Icon> {
 /// Applies what `create_winit_window_attributes` couldn't.
 pub fn apply_viewport_builder_to_window(
     egui_ctx: &egui::Context,
-    window: &dyn Window,
+    window: &(impl Window + ?Sized),
     builder: &ViewportBuilder,
 ) {
     if let Some(mouse_passthrough) = builder.mouse_passthrough
