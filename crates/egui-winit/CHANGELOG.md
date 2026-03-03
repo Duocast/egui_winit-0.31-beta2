@@ -6,7 +6,8 @@ Changes since the last release can be found at <https://github.com/emilk/egui/co
 
 
 ## 0.33.3 - 2025-12-11
-Nothing new
+### 🐛 Fixed
+* Ported `egui-winit` to `winit` `0.31.0-beta.2` API changes (pointer event names, window trait types, platform attribute updates, and monitor/IME enum updates).
 
 
 ## 0.33.2 - 2025-11-13
