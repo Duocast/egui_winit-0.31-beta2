@@ -654,8 +654,8 @@ impl State {
                 self.ime_event_disable();
             }
             winit::event::Ime::DeleteSurrounding { .. } => {
-                // Winit 0.31 added this variant for IME delete surrounding text requests.
-                // Currently not handled by egui.
+                // Winit 0.31 added this variant for IME delete-surrounding-text requests.
+                // egui currently has no equivalent event, so we intentionally ignore it.
             }
         }
     }
