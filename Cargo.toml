@@ -9,6 +9,7 @@ members = [
   "crates/egui_kittest",
   "crates/egui-wgpu",
   "crates/egui-winit",
+  "crates/glutin-winit",
   "crates/egui",
   "crates/emath",
   "crates/epaint",
@@ -92,7 +93,7 @@ enum-map = "2.7.3"
 env_logger = { version = "0.11.8", default-features = false }
 glow = "0.16.0"
 glutin = { version = "0.32.3", default-features = false }
-glutin-winit = { version = "0.5.0", default-features = false }
+glutin-winit = { version = "0.5.0", path = "crates/glutin-winit", default-features = false }
 home = "0.5.9"
 image = { version = "0.25.6", default-features = false }
 js-sys = "0.3.77"
