@@ -326,7 +326,7 @@ pub fn create_native<'a>(
     app_name: &str,
     mut native_options: NativeOptions,
     app_creator: AppCreator<'a>,
-    event_loop: &winit::event_loop::EventLoop<UserEvent>,
+    event_loop: &winit::event_loop::EventLoop,
 ) -> EframeWinitApplication<'a> {
     let renderer = init_native(app_name, &mut native_options);
 

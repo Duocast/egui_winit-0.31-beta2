@@ -8,7 +8,7 @@ thread_local! {
 struct EventLoopGuard;
 
 impl EventLoopGuard {
-    fn new(event_loop: &ActiveEventLoop) -> Self {
+    fn new(event_loop: &dyn ActiveEventLoop) -> Self {
         CURRENT_EVENT_LOOP.with(|cell| {
             assert!(
                 cell.get().is_none(),
@@ -30,7 +30,7 @@ impl Drop for EventLoopGuard {
 #[expect(unsafe_code)]
 pub fn with_current_event_loop<F, R>(f: F) -> Option<R>
 where
-    F: FnOnce(&ActiveEventLoop) -> R,
+    F: FnOnce(&dyn ActiveEventLoop) -> R,
 {
     CURRENT_EVENT_LOOP.with(|cell| {
         cell.get().map(|ptr| {
@@ -47,7 +47,7 @@ where
 }
 
 // The only public interface to use the event loop
-pub fn with_event_loop_context(event_loop: &ActiveEventLoop, f: impl FnOnce()) {
+pub fn with_event_loop_context(event_loop: &dyn ActiveEventLoop, f: impl FnOnce()) {
     // NOTE: For safety, this guard must NOT be leaked.
     let _guard = EventLoopGuard::new(event_loop);
     f();

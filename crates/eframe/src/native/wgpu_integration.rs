@@ -36,7 +36,7 @@ use super::{epi_integration, event_loop_context, winit_integration, winit_integr
 // Types:
 
 pub struct WgpuWinitApp<'app> {
-    repaint_proxy: Arc<Mutex<EventLoopProxy<UserEvent>>>,
+    repaint_proxy: Arc<Mutex<EventLoopProxy>>,
     app_name: String,
     native_options: NativeOptions,
 
@@ -89,7 +89,7 @@ pub struct Viewport {
 
     /// Window surface state that's initialized when the app starts running via a Resumed event
     /// and on Android will also be destroyed if the application is paused.
-    window: Option<Arc<Window>>,
+    window: Option<Arc<dyn Window>>,
 
     /// `window` and `egui_winit` are initialized together.
     egui_winit: Option<egui_winit::State>,
@@ -99,7 +99,7 @@ pub struct Viewport {
 
 impl<'app> WgpuWinitApp<'app> {
     pub fn new(
-        event_loop: &EventLoop<UserEvent>,
+        event_loop: &EventLoop,
         app_name: &str,
         native_options: NativeOptions,
         app_creator: AppCreator<'app>,
@@ -122,7 +122,7 @@ impl<'app> WgpuWinitApp<'app> {
     }
 
     /// Create a window for all viewports lacking one.
-    fn initialized_all_windows(&mut self, event_loop: &ActiveEventLoop) {
+    fn initialized_all_windows(&mut self, event_loop: &dyn ActiveEventLoop) {
         let Some(running) = &mut self.running else {
             return;
         };
@@ -145,7 +145,7 @@ impl<'app> WgpuWinitApp<'app> {
     }
 
     #[cfg(target_os = "android")]
-    fn recreate_window(&self, event_loop: &ActiveEventLoop, running: &WgpuWinitRunning<'app>) {
+    fn recreate_window(&self, event_loop: &dyn ActiveEventLoop, running: &WgpuWinitRunning<'app>) {
         let SharedState {
             egui_ctx,
             viewports,
@@ -178,7 +178,7 @@ impl<'app> WgpuWinitApp<'app> {
     fn init_run_state(
         &mut self,
         egui_ctx: egui::Context,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         storage: Option<Box<dyn Storage>>,
         window: Window,
         builder: ViewportBuilder,
@@ -346,7 +346,7 @@ impl WinitApp for WgpuWinitApp<'_> {
         self.running.as_ref().map(|r| &r.integration.egui_ctx)
     }
 
-    fn window(&self, window_id: WindowId) -> Option<Arc<Window>> {
+    fn window(&self, window_id: WindowId) -> Option<Arc<dyn Window>> {
         self.running
             .as_ref()
             .and_then(|r| {
@@ -386,7 +386,7 @@ impl WinitApp for WgpuWinitApp<'_> {
 
     fn run_ui_and_paint(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         window_id: WindowId,
     ) -> Result<EventResult> {
         self.initialized_all_windows(event_loop);
@@ -398,7 +398,7 @@ impl WinitApp for WgpuWinitApp<'_> {
         }
     }
 
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) -> crate::Result<EventResult> {
+    fn resumed(&mut self, event_loop: &dyn ActiveEventLoop) -> crate::Result<EventResult> {
         log::debug!("Event::Resumed");
 
         let running = if let Some(running) = &self.running {
@@ -435,7 +435,7 @@ impl WinitApp for WgpuWinitApp<'_> {
         }
     }
 
-    fn suspended(&mut self, _: &ActiveEventLoop) -> crate::Result<EventResult> {
+    fn suspended(&mut self, _: &dyn ActiveEventLoop) -> crate::Result<EventResult> {
         #[cfg(target_os = "android")]
         self.drop_window()?;
         Ok(EventResult::Save)
@@ -443,7 +443,7 @@ impl WinitApp for WgpuWinitApp<'_> {
 
     fn device_event(
         &mut self,
-        _: &ActiveEventLoop,
+        _: &dyn ActiveEventLoop,
         _: winit::event::DeviceId,
         event: winit::event::DeviceEvent,
     ) -> crate::Result<EventResult> {
@@ -479,7 +479,7 @@ impl WinitApp for WgpuWinitApp<'_> {
 
     fn window_event(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         window_id: WindowId,
         event: winit::event::WindowEvent,
     ) -> crate::Result<EventResult> {
@@ -929,7 +929,7 @@ impl Viewport {
     /// Create winit window, if needed.
     fn initialize_window(
         &mut self,
-        event_loop: &ActiveEventLoop,
+        event_loop: &dyn ActiveEventLoop,
         egui_ctx: &egui::Context,
         windows_id: &mut HashMap<WindowId, ViewportId>,
         painter: &mut egui_wgpu::winit::Painter,
@@ -975,7 +975,7 @@ impl Viewport {
 
 fn create_window(
     egui_ctx: &egui::Context,
-    event_loop: &ActiveEventLoop,
+    event_loop: &dyn ActiveEventLoop,
     storage: Option<&dyn Storage>,
     native_options: &mut NativeOptions,
 ) -> Result<(Window, ViewportBuilder), winit::error::OsError> {

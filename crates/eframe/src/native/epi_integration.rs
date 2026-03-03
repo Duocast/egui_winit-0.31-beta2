@@ -15,7 +15,7 @@ use crate::epi;
 #[cfg_attr(target_os = "ios", allow(dead_code, unused_variables, unused_mut))]
 pub fn viewport_builder(
     egui_zoom_factor: f32,
-    event_loop: &ActiveEventLoop,
+    event_loop: &dyn ActiveEventLoop,
     native_options: &mut epi::NativeOptions,
     window_settings: Option<WindowSettings>,
 ) -> ViewportBuilder {
@@ -100,7 +100,10 @@ pub fn apply_window_settings(
 }
 
 #[cfg(not(target_os = "ios"))]
-fn largest_monitor_point_size(egui_zoom_factor: f32, event_loop: &ActiveEventLoop) -> egui::Vec2 {
+fn largest_monitor_point_size(
+    egui_zoom_factor: f32,
+    event_loop: &dyn ActiveEventLoop,
+) -> egui::Vec2 {
     profiling::function_scope!();
     let mut max_size = egui::Vec2::ZERO;
 
