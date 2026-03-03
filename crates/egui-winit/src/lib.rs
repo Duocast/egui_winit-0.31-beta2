@@ -95,11 +95,6 @@ pub struct State {
     /// Creates duplicate touches, if real touch inputs are coming.
     simulate_touch_screen: bool,
 
-    /// Is Some(…) when a touch is being translated to a pointer.
-    ///
-    /// Only one touch will be interpreted as pointer at any time.
-    pointer_touch_id: Option<u64>,
-
     /// track ime state
     has_sent_ime_enabled: bool,
 
@@ -141,8 +136,6 @@ impl State {
             ),
 
             simulate_touch_screen: false,
-            pointer_touch_id: None,
-
             has_sent_ime_enabled: false,
 
             #[cfg(feature = "accesskit")]
@@ -442,13 +435,7 @@ impl State {
                 // winit 0.31 includes pointer position for DnD; update egui's pointer pos.
                 self.on_cursor_moved(window, *position);
 
-                self.egui_input.hovered_files.clear();
-                self.egui_input
-                    .hovered_files
-                    .extend(paths.iter().cloned().map(|path| egui::HoveredFile {
-                        path: Some(path),
-                        ..Default::default()
-                    }));
+                self.set_hovered_files_from_paths(paths);
 
                 EventResponse {
                     repaint: true,
@@ -478,13 +465,7 @@ impl State {
             WindowEvent::DragDropped { paths, position } => {
                 self.on_cursor_moved(window, *position);
 
-                self.egui_input.hovered_files.clear();
-                self.egui_input
-                    .dropped_files
-                    .extend(paths.iter().cloned().map(|path| egui::DroppedFile {
-                        path: Some(path),
-                        ..Default::default()
-                    }));
+                self.push_dropped_files_from_paths(paths);
 
                 EventResponse {
                     repaint: true,
