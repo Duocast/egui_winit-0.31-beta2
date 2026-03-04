@@ -941,6 +941,48 @@ fn change_gl_context(
 }
 
 impl GlutinWindowContext {
+    fn pick_gl_config(
+        mut config_iterator: impl Iterator<Item = glutin::config::Config>,
+        require_hardware_acceleration: bool,
+    ) -> glutin::config::Config {
+        let first_config = config_iterator
+            .next()
+            .expect("failed to find a matching configuration for creating glutin config");
+
+        let first_is_hardware = first_config.hardware_accelerated();
+        let first_samples = first_config.num_samples();
+
+        let config = config_iterator.fold(first_config, |best, candidate| {
+            let best_is_hardware = best.hardware_accelerated();
+            let candidate_is_hardware = candidate.hardware_accelerated();
+
+            if require_hardware_acceleration && best_is_hardware != candidate_is_hardware {
+                return if candidate_is_hardware {
+                    candidate
+                } else {
+                    best
+                };
+            }
+
+            let best_samples = best.num_samples();
+            let candidate_samples = candidate.num_samples();
+
+            if candidate_samples > best_samples {
+                candidate
+            } else {
+                best
+            }
+        });
+
+        log::debug!(
+            "picked GL config: hardware_accelerated={:?}, num_samples={}, first_config_hardware_accelerated={first_is_hardware:?}, first_config_num_samples={first_samples}",
+            config.hardware_accelerated(),
+            config.num_samples(),
+        );
+
+        config
+    }
+
     #[expect(unsafe_code)]
     unsafe fn new(
         egui_ctx: &egui::Context,
@@ -992,32 +1034,35 @@ impl GlutinWindowContext {
             }
         };
 
-        // Create GL display. This may probably create a window too on most platforms. Definitely on `MS windows`. Never on Android.
-        let display_builder = glutin_winit::DisplayBuilder::new()
-            // we might want to expose this option to users in the future. maybe using an env var or using native_options.
-            //
-            // The justification for FallbackEgl over PreferEgl is at https://github.com/emilk/egui/pull/2526#issuecomment-1400229576 .
-            .with_preference(glutin_winit::ApiPreference::FallbackEgl)
-            .with_window_attributes(Some(egui_winit::create_winit_window_attributes(
-                egui_ctx,
-                viewport_builder.clone(),
-            )));
+        let display_builder = || {
+            // Create GL display. This may probably create a window too on most platforms. Definitely on `MS windows`. Never on Android.
+            glutin_winit::DisplayBuilder::new()
+                // we might want to expose this option to users in the future. maybe using an env var or using native_options.
+                //
+                // The justification for FallbackEgl over PreferEgl is at https://github.com/emilk/egui/pull/2526#issuecomment-1400229576 .
+                .with_preference(glutin_winit::ApiPreference::FallbackEgl)
+                .with_window_attributes(Some(egui_winit::create_winit_window_attributes(
+                    egui_ctx,
+                    viewport_builder.clone(),
+                )))
+        };
 
-        let mut try_create_display = |prefer_hardware_accelerated| {
+        let try_create_display = |prefer_hardware_accelerated| {
             let config_template_builder = config_template_builder(prefer_hardware_accelerated);
             log::debug!("trying to create glutin Display with config: {config_template_builder:?}");
 
             profiling::scope!("DisplayBuilder::build");
-            display_builder
+            display_builder()
                 .build(
                     event_loop,
                     config_template_builder.clone(),
-                    |mut config_iterator| {
-                        let config = config_iterator.next().expect(
-                            "failed to find a matching configuration for creating glutin config",
+                    |config_iterator| {
+                        let config = Self::pick_gl_config(
+                            config_iterator,
+                            prefer_hardware_accelerated == Some(true),
                         );
                         log::debug!(
-                            "using the first config from config picker closure. config: {config:?}"
+                            "using selected config from config picker closure. config: {config:?}"
                         );
                         config
                     },
