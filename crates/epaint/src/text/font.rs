@@ -11,8 +11,8 @@ use vello_cpu::{color, kurbo};
 
 use crate::{
     TextOptions, TextureAtlas,
-    text::{
-        FontTweak,
+    text::        
+        FontTweak, VariationCoords,
         fonts::{Blob, CachedFamily, FontFaceKey},
     },
 };
@@ -145,8 +145,8 @@ struct GlyphCacheKey(u64);
 impl nohash_hasher::IsEnabled for GlyphCacheKey {}
 
 impl GlyphCacheKey {
-    fn new(glyph_id: skrifa::GlyphId, metrics: &ScaledMetrics, bin: SubpixelBin) -> Self {
-        let ScaledMetrics {
+    fn new(glyph_id: skrifa::GlyphId, metrics: &StyledMetrics, bin: SubpixelBin) -> Self {
+        let StyledMetrics {
             pixels_per_point,
             px_scale_factor,
             ..
@@ -197,10 +197,10 @@ impl FontCell {
     fn allocate_glyph_uncached(
         &mut self,
         atlas: &mut TextureAtlas,
-        metrics: &ScaledMetrics,
+        metrics: &StyledMetrics,
         glyph_info: &GlyphInfo,
         bin: SubpixelBin,
-        location: &skrifa::instance::Location,
+        location: skrifa::instance::LocationRef<'_>,
     ) -> Option<GlyphAllocation> {
         let glyph_id = glyph_info.id?;
 
@@ -337,8 +337,6 @@ pub struct FontFace {
     font: FontCell,
     tweak: FontTweak,
 
-    /// Variable font location (for weight axis, etc.)
-    location: skrifa::instance::Location,
     glyph_info_cache: ahash::HashMap<char, GlyphInfo>,
     glyph_alloc_cache: ahash::HashMap<GlyphCacheKey, GlyphAllocation>,
 }
@@ -350,7 +348,6 @@ impl FontFace {
         font_data: Blob,
         index: u32,
         tweak: FontTweak,
-        preferred_weight: Option<u16>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let font = FontCell::try_new(font_data, |font_data| {
             let skrifa_font =
