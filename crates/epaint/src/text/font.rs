@@ -393,44 +393,10 @@ impl FontFace {
             })
         })?;
 
-        // Use preferred_weight if provided, otherwise try to read from the OS/2 table or fvar default
-        let weight = preferred_weight.or_else(|| {
-            // First try OS/2 table
-            if let Some(w) = font
-                .borrow_dependent()
-                .skrifa
-                .os2()
-                .ok()
-                .map(|os2| os2.us_weight_class())
-            {
-                return Some(w);
-            }
-            // If no OS/2 or preferred_weight, try to get default from variable font's fvar table
-            font.borrow_dependent()
-                .skrifa
-                .axes()
-                .iter()
-                .find(|axis| axis.tag() == skrifa::raw::types::Tag::new(b"wght"))
-                .map(|axis| axis.default_value() as u16)
-        });
-
-        // Create location for variable font with weight axis
-        // If weight is provided (either from preferred_weight, OS/2, or fvar default), use it
-        // Otherwise fall back to Location::default() which uses all axis defaults
-        let location = if let Some(w) = weight {
-            font.borrow_dependent()
-                .skrifa
-                .axes()
-                .location([("wght", w as f32)])
-        } else {
-            skrifa::instance::Location::default()
-        };
-
         Ok(Self {
             name,
             font,
             tweak,
-            location,
             glyph_info_cache: Default::default(),
             glyph_alloc_cache: Default::default(),
         })
@@ -534,7 +500,7 @@ impl FontFace {
     #[inline]
     pub(super) fn pair_kerning_pixels(
         &self,
-        metrics: &ScaledMetrics,
+        metrics: &StyledMetrics,
         last_glyph_id: skrifa::GlyphId,
         glyph_id: skrifa::GlyphId,
     ) -> f32 {
@@ -556,7 +522,7 @@ impl FontFace {
     #[inline]
     pub fn pair_kerning(
         &self,
-        metrics: &ScaledMetrics,
+        metrics: &StyledMetrics,
         last_glyph_id: skrifa::GlyphId,
         glyph_id: skrifa::GlyphId,
     ) -> f32 {
@@ -564,7 +530,12 @@ impl FontFace {
     }
 
     #[inline(always)]
-    pub fn scaled_metrics(&self, pixels_per_point: f32, font_size: f32) -> ScaledMetrics {
+    pub fn styled_metrics(
+        &self,
+        pixels_per_point: f32,
+        font_size: f32,
+        coords: &VariationCoords,
+    ) -> StyledMetrics {
         let pt_scale_factor = self.font.px_scale_factor(font_size * self.tweak.scale);
         let font_data = self.font.borrow_dependent();
         let ascent = (font_data.metrics.ascent * pt_scale_factor).round_ui();
@@ -578,20 +549,32 @@ impl FontFace {
             + self.tweak.y_offset)
             .round_ui();
 
-        ScaledMetrics {
+        let axes = font_data.skrifa.axes();
+        // Override the default coordinates with ones specified via FontTweak, then the ones specified directly via the
+        // argument (probably from TextFormat).
+        let settings = self
+            .tweak
+            .coords
+            .as_ref()
+            .iter()
+            .chain(coords.as_ref().iter());
+        let location = axes.location(settings);
+
+        StyledMetrics {
             pixels_per_point,
             px_scale_factor,
             scale,
             y_offset_in_points,
             ascent,
             row_height: ascent - descent + line_gap,
+            location,
         }
     }
 
     pub fn allocate_glyph(
         &mut self,
         atlas: &mut TextureAtlas,
-        metrics: &ScaledMetrics,
+        metrics: &StyledMetrics,
         glyph_info: GlyphInfo,
         chr: char,
         h_pos: f32,
@@ -625,7 +608,7 @@ impl FontFace {
 
         let allocation = self
             .font
-            .allocate_glyph_uncached(atlas, metrics, &glyph_info, bin, &self.location)
+            .allocate_glyph_uncached(atlas, metrics, &glyph_info, bin, (&metrics.location).into())
             .unwrap_or_default();
 
         entry.insert(allocation);
@@ -662,12 +645,17 @@ impl Font<'_> {
         })
     }
 
-    pub fn scaled_metrics(&self, pixels_per_point: f32, font_size: f32) -> ScaledMetrics {
+    pub fn styled_metrics(
+        &self,
+        pixels_per_point: f32,
+        font_size: f32,
+        coords: &VariationCoords,
+    ) -> StyledMetrics {
         self.cached_family
             .fonts
             .first()
             .and_then(|key| self.fonts_by_id.get(key))
-            .map(|font_face| font_face.scaled_metrics(pixels_per_point, font_size))
+            .map(|font_face| font_face.styled_metrics(pixels_per_point, font_size, coords))
             .unwrap_or_default()
     }
 
@@ -710,8 +698,8 @@ impl Font<'_> {
 }
 
 /// Metrics for a font at a specific screen-space scale.
-#[derive(Clone, Copy, Debug, PartialEq, Default)]
-pub struct ScaledMetrics {
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct StyledMetrics {
     /// The DPI part of the screen-space scale.
     pub pixels_per_point: f32,
 
@@ -735,6 +723,9 @@ pub struct ScaledMetrics {
     ///
     /// Returns a value rounded to [`emath::GUI_ROUNDING`].
     pub row_height: f32,
+
+    /// Resolved variation coordinates.
+    pub location: skrifa::instance::Location,
 }
 
 /// Code points that will always be invisible (zero width).
