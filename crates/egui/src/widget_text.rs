@@ -1,5 +1,5 @@
 use emath::GuiRounding as _;
-use epaint::text::TextFormat;
+use epaint::text::{IntoTag, TextFormat, VariationCoords};
 use std::fmt::Formatter;
 use std::{borrow::Cow, sync::Arc};
 
