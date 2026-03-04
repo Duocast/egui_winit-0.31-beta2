@@ -198,6 +198,23 @@ impl RichText {
         self
     }
 
+    /// Add a variation coordinate.
+    #[inline]
+    pub fn variation(mut self, tag: impl IntoTag, coord: f32) -> Self {
+        self.coords.push(tag, coord);
+        self
+    }
+
+    /// Override the variation coordinates completely.
+    #[inline]
+    pub fn variations<T: IntoTag>(
+        mut self,
+        variations: impl IntoIterator<Item = (T, f32)>,
+    ) -> Self {
+        self.coords = VariationCoords::new(variations);
+        self
+    }
+    
     /// Override the [`TextStyle`].
     #[inline]
     pub fn text_style(mut self, text_style: TextStyle) -> Self {
@@ -393,6 +410,7 @@ impl RichText {
             background_color,
             expand_bg,
             text_color: _, // already used by `get_text_color`
+            coords,
             code,
             strong: _, // already used by `get_text_color`
             weak: _,   // already used by `get_text_color`
@@ -451,6 +469,7 @@ impl RichText {
                 line_height,
                 color: text_color,
                 background: background_color,
+                coords,
                 italics,
                 underline,
                 strikethrough,
