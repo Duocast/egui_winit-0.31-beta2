@@ -957,7 +957,7 @@ impl GlutinWindowContext {
         // convert native options to glutin options
         let hardware_acceleration = match native_options.hardware_acceleration {
             crate::HardwareAcceleration::Required => Some(true),
-            crate::HardwareAcceleration::Preferred => None,
+            crate::HardwareAcceleration::Preferred => Some(true),
             crate::HardwareAcceleration::Off => Some(false),
         };
         let swap_interval = if native_options.vsync {
@@ -972,24 +972,25 @@ impl GlutinWindowContext {
             4. opengl context creation
         */
         // start building config for gl display
-        let config_template_builder = glutin::config::ConfigTemplateBuilder::new()
-            .prefer_hardware_accelerated(hardware_acceleration)
-            .with_depth_size(native_options.depth_buffer)
-            .with_stencil_size(native_options.stencil_buffer)
-            .with_transparency(native_options.viewport.transparent.unwrap_or(false));
-        // we don't know if multi sampling option is set. so, check if its more than 0.
-        let config_template_builder = if native_options.multisampling > 0 {
-            config_template_builder.with_multisampling(
-                native_options
-                    .multisampling
-                    .try_into()
-                    .expect("failed to fit multisamples option of native_options into u8"),
-            )
-        } else {
-            config_template_builder
-        };
+        let config_template_builder = |prefer_hardware_accelerated| {
+            let config_template_builder = glutin::config::ConfigTemplateBuilder::new()
+                .prefer_hardware_accelerated(prefer_hardware_accelerated)
+                .with_depth_size(native_options.depth_buffer)
+                .with_stencil_size(native_options.stencil_buffer)
+                .with_transparency(native_options.viewport.transparent.unwrap_or(false));
 
-        log::debug!("trying to create glutin Display with config: {config_template_builder:?}");
+            // we don't know if multi sampling option is set. so, check if its more than 0.
+            if native_options.multisampling > 0 {
+                config_template_builder.with_multisampling(
+                    native_options
+                        .multisampling
+                        .try_into()
+                        .expect("failed to fit multisamples option of native_options into u8"),
+                )
+            } else {
+                config_template_builder
+            }
+        };
 
         // Create GL display. This may probably create a window too on most platforms. Definitely on `MS windows`. Never on Android.
         let display_builder = glutin_winit::DisplayBuilder::new()
@@ -1002,9 +1003,11 @@ impl GlutinWindowContext {
                 viewport_builder.clone(),
             )));
 
-        let (window, gl_config) = {
-            profiling::scope!("DisplayBuilder::build");
+        let mut try_create_display = |prefer_hardware_accelerated| {
+            let config_template_builder = config_template_builder(prefer_hardware_accelerated);
+            log::debug!("trying to create glutin Display with config: {config_template_builder:?}");
 
+            profiling::scope!("DisplayBuilder::build");
             display_builder
                 .build(
                     event_loop,
@@ -1019,7 +1022,20 @@ impl GlutinWindowContext {
                         config
                     },
                 )
-                .map_err(|e| crate::Error::NoGlutinConfigs(config_template_builder.build(), e))?
+                .map_err(|e| crate::Error::NoGlutinConfigs(config_template_builder.build(), e))
+        };
+
+        let (window, gl_config) = if native_options.hardware_acceleration
+            == crate::HardwareAcceleration::Preferred
+        {
+            try_create_display(hardware_acceleration).or_else(|err| {
+                log::warn!(
+                    "Could not create a hardware-accelerated OpenGL config ({err}). Falling back to any available OpenGL config."
+                );
+                try_create_display(None)
+            })?
+        } else {
+            try_create_display(hardware_acceleration)?
         };
         if let Some(window) = &window {
             egui_winit::apply_viewport_builder_to_window(
