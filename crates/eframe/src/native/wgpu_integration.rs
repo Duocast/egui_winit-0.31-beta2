@@ -495,27 +495,10 @@ impl WinitApp for WgpuWinitApp<'_> {
     }
 
     #[cfg(feature = "accesskit")]
-    fn on_accesskit_event(&mut self, event: accesskit_winit::Event) -> crate::Result<EventResult> {
-        if let Some(running) = &mut self.running {
-            let mut shared_lock = running.shared.borrow_mut();
-            let SharedState {
-                viewport_from_window,
-                viewports,
-                ..
-            } = &mut *shared_lock;
-            if let Some(viewport) = viewport_from_window
-                .get(&event.window_id)
-                .and_then(|id| viewports.get_mut(id))
-                && let Some(egui_winit) = &mut viewport.egui_winit
-            {
-                return Ok(winit_integration::on_accesskit_window_event(
-                    egui_winit,
-                    event.window_id,
-                    &event.window_event,
-                ));
-            }
-        }
-
+    fn on_accesskit_event(&mut self, _event: accesskit_winit::Event) -> crate::Result<EventResult> {
+        // accesskit_winit 0.29.x emits events with winit 0.30 window ids, while eframe uses
+        // winit 0.31 ids. egui_winit::State::init_accesskit is currently a no-op for winit 0.31,
+        // so no accesskit events are expected in practice.
         Ok(EventResult::Wait)
     }
 }

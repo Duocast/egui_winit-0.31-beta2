@@ -272,7 +272,7 @@ impl<'app> GlowWinitApp<'app> {
                 ..
             } = viewport
             {
-                egui_winit.init_accesskit(event_loop, window, event_loop_proxy);
+                egui_winit.init_accesskit(event_loop, window.as_ref(), event_loop_proxy);
             }
         }
 
@@ -488,23 +488,10 @@ impl WinitApp for GlowWinitApp<'_> {
     }
 
     #[cfg(feature = "accesskit")]
-    fn on_accesskit_event(&mut self, event: accesskit_winit::Event) -> crate::Result<EventResult> {
-        use super::winit_integration;
-
-        if let Some(running) = &self.running {
-            let mut glutin = running.glutin.borrow_mut();
-            if let Some(viewport_id) = glutin.viewport_from_window.get(&event.window_id).copied()
-                && let Some(viewport) = glutin.viewports.get_mut(&viewport_id)
-                && let Some(egui_winit) = &mut viewport.egui_winit
-            {
-                return Ok(winit_integration::on_accesskit_window_event(
-                    egui_winit,
-                    event.window_id,
-                    &event.window_event,
-                ));
-            }
-        }
-
+    fn on_accesskit_event(&mut self, _event: accesskit_winit::Event) -> crate::Result<EventResult> {
+        // accesskit_winit 0.29.x emits events with winit 0.30 window ids, while eframe uses
+        // winit 0.31 ids. egui_winit::State::init_accesskit is currently a no-op for winit 0.31,
+        // so no accesskit events are expected in practice.
         Ok(EventResult::Wait)
     }
 }
