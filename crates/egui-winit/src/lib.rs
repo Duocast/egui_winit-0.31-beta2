@@ -162,7 +162,7 @@ impl State {
     pub fn init_accesskit(
         &mut self,
         _event_loop: &(impl ActiveEventLoop + ?Sized),
-        _window: &(impl Window + ?Sized),
+        _window: &dyn Window,
         _event_loop_proxy: winit::event_loop::EventLoopProxy,
     ) {
         profiling::function_scope!();
