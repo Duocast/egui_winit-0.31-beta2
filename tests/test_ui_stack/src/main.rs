@@ -10,7 +10,7 @@ use egui_extras::Column;
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_surface_size([320.0, 240.0]),
         ..Default::default()
     };
     eframe::run_native(

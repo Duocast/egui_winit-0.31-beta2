@@ -30,7 +30,7 @@ impl GlutinWindowContext {
         use glutin::prelude::GlSurface as _;
         let winit_window_builder = winit::window::WindowAttributes::default()
             .with_resizable(true)
-            .with_inner_size(winit::dpi::LogicalSize {
+            .with_surface_size(winit::dpi::LogicalSize {
                 width: 800.0,
                 height: 600.0,
             })
@@ -93,7 +93,7 @@ impl GlutinWindowContext {
             glutin_winit::finalize_window(event_loop, winit_window_builder.clone(), &gl_config)
                 .expect("failed to finalize glutin window")
         });
-        let (width, height): (u32, u32) = window.inner_size().into();
+        let (width, height): (u32, u32) = window.surface_size().into();
         let width = NonZeroU32::new(width).unwrap_or(NonZeroU32::MIN);
         let height = NonZeroU32::new(height).unwrap_or(NonZeroU32::MIN);
         let surface_attributes =

@@ -113,7 +113,7 @@ impl EguiGlow {
 
         let pixels_per_point = self.pixels_per_point;
         let clipped_primitives = self.egui_ctx.tessellate(shapes, pixels_per_point);
-        let dimensions: [u32; 2] = window.inner_size().into();
+        let dimensions: [u32; 2] = window.surface_size().into();
         self.painter
             .paint_primitives(dimensions, pixels_per_point, &clipped_primitives);
 

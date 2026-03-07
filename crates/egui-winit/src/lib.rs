@@ -1140,10 +1140,10 @@ pub fn inner_rect_in_points(
     let inner_pos_px = window.surface_position();
     let inner_pos_px = egui::pos2(inner_pos_px.x as f32, inner_pos_px.y as f32);
 
-    let inner_size_px = window.surface_size();
-    let inner_size_px = egui::vec2(inner_size_px.width as f32, inner_size_px.height as f32);
+    let surface_size_px = window.surface_size();
+    let surface_size_px = egui::vec2(surface_size_px.width as f32, surface_size_px.height as f32);
 
-    let inner_rect_px = egui::Rect::from_min_size(inner_pos_px, inner_size_px);
+    let inner_rect_px = egui::Rect::from_min_size(inner_pos_px, surface_size_px);
 
     Some(inner_rect_px / pixels_per_point)
 }
@@ -1575,7 +1575,7 @@ fn process_viewport_command(
             let width_px = pixels_per_point * size.x.max(1.0);
             let height_px = pixels_per_point * size.y.max(1.0);
             let requested_size = PhysicalSize::new(width_px, height_px);
-            if let Some(_returned_inner_size) = window.request_surface_size(requested_size.into()) {
+            if let Some(_returned_surface_size) = window.request_surface_size(requested_size.into()) {
                 // On platforms where the size is entirely controlled by the user the
                 // applied size will be returned immediately, resize event in such case
                 // may not be generated.
@@ -1792,9 +1792,9 @@ pub fn create_winit_window_attributes(
     let ViewportBuilder {
         title,
         position,
-        inner_size,
-        min_inner_size,
-        max_inner_size,
+        surface_size,
+        min_surface_size,
+        max_surface_size,
         fullscreen,
         maximized,
         resizable,
@@ -1879,19 +1879,19 @@ pub fn create_winit_window_attributes(
         use winit::dpi::{LogicalPosition, LogicalSize};
         let zoom_factor = egui_ctx.zoom_factor();
 
-        if let Some(size) = inner_size {
+        if let Some(size) = surface_size {
             window_attributes = window_attributes
                 .with_surface_size(LogicalSize::new(zoom_factor * size.x, zoom_factor * size.y));
         }
 
-        if let Some(size) = min_inner_size {
+        if let Some(size) = min_surface_size {
             window_attributes = window_attributes.with_min_surface_size(LogicalSize::new(
                 zoom_factor * size.x,
                 zoom_factor * size.y,
             ));
         }
 
-        if let Some(size) = max_inner_size {
+        if let Some(size) = max_surface_size {
             window_attributes = window_attributes.with_max_surface_size(LogicalSize::new(
                 zoom_factor * size.x,
                 zoom_factor * size.y,
@@ -1911,9 +1911,9 @@ pub fn create_winit_window_attributes(
         _ = egui_ctx;
         _ = pixels_per_point;
         _ = position;
-        _ = inner_size;
-        _ = min_inner_size;
-        _ = max_inner_size;
+        _ = surface_size;
+        _ = min_surface_size;
+        _ = max_surface_size;
     }
 
     if let Some(icon) = icon {
@@ -2018,7 +2018,7 @@ pub fn apply_viewport_builder_to_window(
 
         let pixels_per_point = pixels_per_point(egui_ctx, window);
 
-        if let Some(size) = builder.inner_size
+        if let Some(size) = builder.surface_size
             && window
                 .request_surface_size(
                     PhysicalSize::new(pixels_per_point * size.x, pixels_per_point * size.y).into(),
@@ -2027,12 +2027,12 @@ pub fn apply_viewport_builder_to_window(
         {
             log::debug!("Failed to set window size");
         }
-        if let Some(size) = builder.min_inner_size {
+        if let Some(size) = builder.min_surface_size {
             window.set_min_surface_size(Some(
                 PhysicalSize::new(pixels_per_point * size.x, pixels_per_point * size.y).into(),
             ));
         }
-        if let Some(size) = builder.max_inner_size {
+        if let Some(size) = builder.max_surface_size {
             window.set_max_surface_size(Some(
                 PhysicalSize::new(pixels_per_point * size.x, pixels_per_point * size.y).into(),
             ));

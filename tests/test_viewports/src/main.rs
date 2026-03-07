@@ -15,7 +15,7 @@ fn main() {
     let _ = eframe::run_native(
         "Viewports",
         eframe::NativeOptions {
-            viewport: egui::ViewportBuilder::default().with_inner_size([450.0, 400.0]),
+            viewport: egui::ViewportBuilder::default().with_surface_size([450.0, 400.0]),
 
             #[cfg(feature = "wgpu")]
             renderer: eframe::Renderer::Wgpu,
@@ -72,7 +72,7 @@ impl ViewportState {
         let viewport = ViewportBuilder::default()
             .with_title(&title)
             .with_close_button(close_button)
-            .with_inner_size([500.0, 500.0]);
+            .with_surface_size([500.0, 500.0]);
 
         if immediate {
             let mut vp_state = vp_state.write();

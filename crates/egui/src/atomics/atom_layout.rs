@@ -191,7 +191,7 @@ impl<'a> AtomLayout<'a> {
         let gap = gap.unwrap_or_else(|| ui.spacing().icon_spacing);
 
         // The size available for the content
-        let available_inner_size = ui.available_size() - frame.total_margin().sum();
+        let available_surface_size = ui.available_size() - frame.total_margin().sum();
 
         let mut desired_width = 0.0;
 
@@ -234,7 +234,7 @@ impl<'a> AtomLayout<'a> {
             }
             let sized = item.into_sized(
                 ui,
-                available_inner_size,
+                available_surface_size,
                 Some(wrap_mode),
                 fallback_font.clone(),
             );
@@ -252,8 +252,8 @@ impl<'a> AtomLayout<'a> {
         if let Some((index, item)) = shrink_item {
             // The `shrink` item gets the remaining space
             let available_size_for_shrink_item = Vec2::new(
-                available_inner_size.x - desired_width,
-                available_inner_size.y,
+                available_surface_size.x - desired_width,
+                available_surface_size.y,
             );
 
             let sized = item.into_sized(

@@ -292,9 +292,9 @@ pub struct ViewportBuilder {
 
     /// The desired outer position of the window.
     pub position: Option<Pos2>,
-    pub inner_size: Option<Vec2>,
-    pub min_inner_size: Option<Vec2>,
-    pub max_inner_size: Option<Vec2>,
+    pub surface_size: Option<Vec2>,
+    pub min_surface_size: Option<Vec2>,
+    pub max_surface_size: Option<Vec2>,
 
     /// Whether clamp the window's size to monitor's size. The default is `true` on linux, otherwise it is `false`.
     ///
@@ -516,8 +516,8 @@ impl ViewportBuilder {
     /// Should be bigger than 0
     /// Look at winit for more details
     #[inline]
-    pub fn with_inner_size(mut self, size: impl Into<Vec2>) -> Self {
-        self.inner_size = Some(size.into());
+    pub fn with_surface_size(mut self, size: impl Into<Vec2>) -> Self {
+        self.surface_size = Some(size.into());
         self
     }
 
@@ -529,8 +529,8 @@ impl ViewportBuilder {
     /// Should be bigger than 0
     /// Look at winit for more details
     #[inline]
-    pub fn with_min_inner_size(mut self, size: impl Into<Vec2>) -> Self {
-        self.min_inner_size = Some(size.into());
+    pub fn with_min_surface_size(mut self, size: impl Into<Vec2>) -> Self {
+        self.min_surface_size = Some(size.into());
         self
     }
 
@@ -542,8 +542,8 @@ impl ViewportBuilder {
     /// Should be bigger than 0
     /// Look at winit for more details
     #[inline]
-    pub fn with_max_inner_size(mut self, size: impl Into<Vec2>) -> Self {
-        self.max_inner_size = Some(size.into());
+    pub fn with_max_surface_size(mut self, size: impl Into<Vec2>) -> Self {
+        self.max_surface_size = Some(size.into());
         self
     }
 
@@ -690,9 +690,9 @@ impl ViewportBuilder {
             title: new_title,
             app_id: new_app_id,
             position: new_position,
-            inner_size: new_inner_size,
-            min_inner_size: new_min_inner_size,
-            max_inner_size: new_max_inner_size,
+            surface_size: new_surface_size,
+            min_surface_size: new_min_surface_size,
+            max_surface_size: new_max_surface_size,
             clamp_size_to_monitor_size: new_clamp_size_to_monitor_size,
             fullscreen: new_fullscreen,
             maximized: new_maximized,
@@ -735,25 +735,25 @@ impl ViewportBuilder {
             commands.push(ViewportCommand::OuterPosition(new_position));
         }
 
-        if let Some(new_inner_size) = new_inner_size
-            && Some(new_inner_size) != self.inner_size
+        if let Some(new_surface_size) = new_surface_size
+            && Some(new_surface_size) != self.surface_size
         {
-            self.inner_size = Some(new_inner_size);
-            commands.push(ViewportCommand::InnerSize(new_inner_size));
+            self.surface_size = Some(new_surface_size);
+            commands.push(ViewportCommand::InnerSize(new_surface_size));
         }
 
-        if let Some(new_min_inner_size) = new_min_inner_size
-            && Some(new_min_inner_size) != self.min_inner_size
+        if let Some(new_min_surface_size) = new_min_surface_size
+            && Some(new_min_surface_size) != self.min_surface_size
         {
-            self.min_inner_size = Some(new_min_inner_size);
-            commands.push(ViewportCommand::MinInnerSize(new_min_inner_size));
+            self.min_surface_size = Some(new_min_surface_size);
+            commands.push(ViewportCommand::MinInnerSize(new_min_surface_size));
         }
 
-        if let Some(new_max_inner_size) = new_max_inner_size
-            && Some(new_max_inner_size) != self.max_inner_size
+        if let Some(new_max_surface_size) = new_max_surface_size
+            && Some(new_max_surface_size) != self.max_surface_size
         {
-            self.max_inner_size = Some(new_max_inner_size);
-            commands.push(ViewportCommand::MaxInnerSize(new_max_inner_size));
+            self.max_surface_size = Some(new_max_surface_size);
+            commands.push(ViewportCommand::MaxInnerSize(new_max_surface_size));
         }
 
         if let Some(new_fullscreen) = new_fullscreen

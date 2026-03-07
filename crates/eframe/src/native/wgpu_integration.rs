@@ -1135,7 +1135,7 @@ fn handle_viewport_output(
             initialize_or_update_viewport(viewports, ids, class, builder, viewport_ui_cb, painter);
 
         if let Some(window) = viewport.window.as_ref() {
-            let old_inner_size = window.surface_size();
+            let old_surface_size = window.surface_size();
 
             viewport.deferred_commands.append(&mut commands);
 
@@ -1149,11 +1149,11 @@ fn handle_viewport_output(
 
             // For Wayland : https://github.com/emilk/egui/issues/4196
             if cfg!(target_os = "linux") {
-                let new_inner_size = window.surface_size();
-                if new_inner_size != old_inner_size
+                let new_surface_size = window.surface_size();
+                if new_surface_size != old_surface_size
                     && let (Some(width), Some(height)) = (
-                        NonZeroU32::new(new_inner_size.width),
-                        NonZeroU32::new(new_inner_size.height),
+                        NonZeroU32::new(new_surface_size.width),
+                        NonZeroU32::new(new_surface_size.height),
                     )
                 {
                     painter.on_window_resized(viewport_id, width, height);

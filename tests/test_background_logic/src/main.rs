@@ -12,7 +12,7 @@ fn main() {
     let _ = eframe::run_native(
         "Background Logic Test",
         eframe::NativeOptions {
-            viewport: egui::ViewportBuilder::default().with_inner_size([400.0, 200.0]),
+            viewport: egui::ViewportBuilder::default().with_surface_size([400.0, 200.0]),
             ..Default::default()
         },
         Box::new(|_cc| Ok(Box::new(App))),

@@ -738,8 +738,8 @@ impl ScrollArea {
 
         let outer_size = available_outer.size().at_most(max_size);
 
-        let inner_size = {
-            let mut inner_size = outer_size - current_bar_use;
+        let surface_size = {
+            let mut surface_size = outer_size - current_bar_use;
 
             // Don't go so far that we shrink to zero.
             // In particular, if we put a [`ScrollArea`] inside of a [`ScrollArea`], the inner
@@ -747,15 +747,15 @@ impl ScrollArea {
             // See https://github.com/emilk/egui/issues/1097
             for d in 0..2 {
                 if direction_enabled[d] {
-                    inner_size[d] = inner_size[d].max(min_scrolled_size[d]);
+                    surface_size[d] = surface_size[d].max(min_scrolled_size[d]);
                 }
             }
-            inner_size
+            surface_size
         };
 
-        let inner_rect = Rect::from_min_size(available_outer.min, inner_size);
+        let inner_rect = Rect::from_min_size(available_outer.min, surface_size);
 
-        let mut content_max_size = inner_size;
+        let mut content_max_size = surface_size;
 
         if true {
             // Tell the inner Ui to *try* to fit the content without needing to scroll,
@@ -800,7 +800,7 @@ impl ScrollArea {
             content_ui.set_clip_rect(content_clip_rect);
         }
 
-        let viewport = Rect::from_min_size(Pos2::ZERO + state.offset, inner_size);
+        let viewport = Rect::from_min_size(Pos2::ZERO + state.offset, surface_size);
         let dt = ui.input(|i| i.stable_dt).at_most(0.1);
 
         let background_drag_response =
@@ -1142,18 +1142,18 @@ impl Prepared {
 
         let inner_rect = {
             // At this point this is the available size for the inner rect.
-            let mut inner_size = inner_rect.size();
+            let mut surface_size = inner_rect.size();
 
             for d in 0..2 {
-                inner_size[d] = match (direction_enabled[d], auto_shrink[d]) {
-                    (true, true) => inner_size[d].min(content_size[d]), // shrink scroll area if content is small
-                    (true, false) => inner_size[d], // let scroll area be larger than content; fill with blank space
+                surface_size[d] = match (direction_enabled[d], auto_shrink[d]) {
+                    (true, true) => surface_size[d].min(content_size[d]), // shrink scroll area if content is small
+                    (true, false) => surface_size[d], // let scroll area be larger than content; fill with blank space
                     (false, true) => content_size[d], // Follow the content (expand/contract to fit it).
-                    (false, false) => inner_size[d].max(content_size[d]), // Expand to fit content
+                    (false, false) => surface_size[d].max(content_size[d]), // Expand to fit content
                 };
             }
 
-            Rect::from_min_size(inner_rect.min, inner_size)
+            Rect::from_min_size(inner_rect.min, surface_size)
         };
 
         let outer_rect = Rect::from_min_size(inner_rect.min, inner_rect.size() + current_bar_use);

@@ -16,7 +16,7 @@ pub struct WindowSettings {
     maximized: bool,
 
     /// Inner size of window in logical pixels
-    inner_size_points: Option<egui::Vec2>,
+    surface_size_points: Option<egui::Vec2>,
 }
 
 impl WindowSettings {
@@ -24,7 +24,7 @@ impl WindowSettings {
         egui_zoom_factor: f32,
         window: &(impl winit::window::Window + ?Sized),
     ) -> Self {
-        let inner_size_points = window
+        let surface_size_points = window
             .surface_size()
             .to_logical::<f32>(egui_zoom_factor as f64 * window.scale_factor());
 
@@ -45,15 +45,15 @@ impl WindowSettings {
             fullscreen: window.fullscreen().is_some(),
             maximized: window.is_maximized(),
 
-            inner_size_points: Some(egui::vec2(
-                inner_size_points.width,
-                inner_size_points.height,
+            surface_size_points: Some(egui::vec2(
+                surface_size_points.width,
+                surface_size_points.height,
             )),
         }
     }
 
-    pub fn inner_size_points(&self) -> Option<egui::Vec2> {
-        self.inner_size_points
+    pub fn surface_size_points(&self) -> Option<egui::Vec2> {
+        self.surface_size_points
     }
 
     pub fn initialize_viewport_builder(
@@ -72,8 +72,8 @@ impl WindowSettings {
             self.outer_position_pixels
         };
         if let Some(pos) = pos_px {
-            let monitor_scale_factor = if let Some(inner_size_points) = self.inner_size_points {
-                find_active_monitor(egui_zoom_factor, event_loop, inner_size_points, &pos)
+            let monitor_scale_factor = if let Some(surface_size_points) = self.surface_size_points {
+                find_active_monitor(egui_zoom_factor, event_loop, surface_size_points, &pos)
                     .map_or(1.0, |monitor| monitor.scale_factor() as f32)
             } else {
                 1.0
@@ -83,9 +83,9 @@ impl WindowSettings {
             viewport_builder = viewport_builder.with_position(scaled_pos);
         }
 
-        if let Some(inner_size_points) = self.inner_size_points {
+        if let Some(surface_size_points) = self.surface_size_points {
             viewport_builder = viewport_builder
-                .with_inner_size(inner_size_points)
+                .with_surface_size(surface_size_points)
                 .with_fullscreen(self.fullscreen)
                 .with_maximized(self.maximized);
         }
@@ -107,7 +107,7 @@ impl WindowSettings {
     pub fn clamp_size_to_sane_values(&mut self, largest_monitor_size_points: egui::Vec2) {
         use egui::NumExt as _;
 
-        if let Some(size) = &mut self.inner_size_points {
+        if let Some(size) = &mut self.surface_size_points {
             // Prevent ridiculously small windows:
             let min_size = egui::Vec2::splat(64.0);
             *size = size.at_least(min_size);
@@ -132,15 +132,15 @@ impl WindowSettings {
             return;
         }
 
-        let Some(inner_size_points) = self.inner_size_points else {
+        let Some(surface_size_points) = self.surface_size_points else {
             return;
         };
 
         if let Some(pos_px) = &mut self.inner_position_pixels {
-            clamp_pos_to_monitors(egui_zoom_factor, event_loop, inner_size_points, pos_px);
+            clamp_pos_to_monitors(egui_zoom_factor, event_loop, surface_size_points, pos_px);
         }
         if let Some(pos_px) = &mut self.outer_position_pixels {
-            clamp_pos_to_monitors(egui_zoom_factor, event_loop, inner_size_points, pos_px);
+            clamp_pos_to_monitors(egui_zoom_factor, event_loop, surface_size_points, pos_px);
         }
     }
 }

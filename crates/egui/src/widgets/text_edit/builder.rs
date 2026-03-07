@@ -535,8 +535,8 @@ impl TextEdit<'_> {
             galley.size().x.max(wrap_width)
         };
         let desired_height = (desired_height_rows.at_least(1) as f32) * row_height;
-        let desired_inner_size = vec2(desired_inner_width, galley.size().y.max(desired_height));
-        let desired_outer_size = (desired_inner_size + margin.sum()).at_least(min_size);
+        let desired_surface_size = vec2(desired_inner_width, galley.size().y.max(desired_height));
+        let desired_outer_size = (desired_surface_size + margin.sum()).at_least(min_size);
         let (auto_id, outer_rect) = ui.allocate_space(desired_outer_size);
         let rect = outer_rect - margin; // inner rect (excluding frame/margin).
 
@@ -660,18 +660,18 @@ impl TextEdit<'_> {
             };
 
             let mut offset_x = state.text_offset.x;
-            let visible_range = offset_x..=offset_x + desired_inner_size.x;
+            let visible_range = offset_x..=offset_x + desired_surface_size.x;
 
             if !visible_range.contains(&cursor_pos) {
                 if cursor_pos < *visible_range.start() {
                     offset_x = cursor_pos;
                 } else {
-                    offset_x = cursor_pos - desired_inner_size.x;
+                    offset_x = cursor_pos - desired_surface_size.x;
                 }
             }
 
             offset_x = offset_x
-                .at_most(galley.size().x - desired_inner_size.x)
+                .at_most(galley.size().x - desired_surface_size.x)
                 .at_least(0.0);
 
             state.text_offset = vec2(offset_x, align_offset.y);
@@ -696,7 +696,7 @@ impl TextEdit<'_> {
                     hint_text.into_galley(
                         ui,
                         Some(TextWrapMode::Wrap),
-                        desired_inner_size.x,
+                        desired_surface_size.x,
                         hint_text_font_id,
                     )
                 } else {

@@ -107,7 +107,7 @@ impl eframe::App for MyApp {
                 egui::ViewportId::from_hash_of("immediate_viewport"),
                 egui::ViewportBuilder::default()
                     .with_title("Immediate Viewport")
-                    .with_inner_size([200.0, 100.0]),
+                    .with_surface_size([200.0, 100.0]),
                 |ui, class| {
                     puffin::profile_scope!("immediate_viewport");
 
@@ -134,7 +134,7 @@ impl eframe::App for MyApp {
                 egui::ViewportId::from_hash_of("deferred_viewport"),
                 egui::ViewportBuilder::default()
                     .with_title("Deferred Viewport")
-                    .with_inner_size([200.0, 100.0]),
+                    .with_surface_size([200.0, 100.0]),
                 move |ui, class| {
                     puffin::profile_scope!("deferred_viewport");
 

@@ -53,7 +53,7 @@ impl crate::View for SceneDemo {
             .inner_margin(0.0)
             .show(ui, |ui| {
                 let scene = Scene::new()
-                    .max_inner_size([350.0, 1000.0])
+                    .max_surface_size([350.0, 1000.0])
                     .zoom_range(0.1..=2.0);
 
                 let mut reset_view = false;

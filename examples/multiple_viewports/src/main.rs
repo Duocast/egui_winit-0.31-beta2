@@ -11,7 +11,7 @@ use eframe::egui;
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_surface_size([320.0, 240.0]),
         ..Default::default()
     };
     eframe::run_native(
@@ -65,7 +65,7 @@ impl eframe::App for MyApp {
                 egui::ViewportId::from_hash_of("immediate_viewport"),
                 egui::ViewportBuilder::default()
                     .with_title("Immediate Viewport")
-                    .with_inner_size([200.0, 100.0]),
+                    .with_surface_size([200.0, 100.0]),
                 |ui, class| {
                     if class == egui::ViewportClass::EmbeddedWindow {
                         ui.label(
@@ -91,7 +91,7 @@ impl eframe::App for MyApp {
                 egui::ViewportId::from_hash_of("deferred_viewport"),
                 egui::ViewportBuilder::default()
                     .with_title("Deferred Viewport")
-                    .with_inner_size([200.0, 100.0]),
+                    .with_surface_size([200.0, 100.0]),
                 move |ui, class| {
                     if class == egui::ViewportClass::EmbeddedWindow {
                         ui.label(

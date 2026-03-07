@@ -75,9 +75,9 @@ impl<'open> Window<'open> {
         let ViewportBuilder {
             title,
             app_id,
-            inner_size,
-            min_inner_size,
-            max_inner_size,
+            surface_size,
+            min_surface_size,
+            max_surface_size,
             resizable,
             decorations,
             title_shown,
@@ -87,14 +87,14 @@ impl<'open> Window<'open> {
 
         let mut window = Self::new(title.or(app_id).unwrap_or_else(String::new)).id(Id::new(id));
 
-        if let Some(inner_size) = inner_size {
-            window = window.default_size(inner_size);
+        if let Some(surface_size) = surface_size {
+            window = window.default_size(surface_size);
         }
-        if let Some(min_inner_size) = min_inner_size {
-            window = window.min_size(min_inner_size);
+        if let Some(min_surface_size) = min_surface_size {
+            window = window.min_size(min_surface_size);
         }
-        if let Some(max_inner_size) = max_inner_size {
-            window = window.max_size(max_inner_size);
+        if let Some(max_surface_size) = max_surface_size {
+            window = window.max_size(max_surface_size);
         }
         if let Some(resizable) = resizable {
             window = window.resizable(resizable);
@@ -1223,8 +1223,8 @@ impl TitleBar {
         } else {
             left_pad + title_galley.size().x + left_pad
         };
-        let min_inner_size = vec2(minimum_width, inner_height);
-        let min_rect = Rect::from_min_size(ui.min_rect().min, min_inner_size);
+        let min_surface_size = vec2(minimum_width, inner_height);
+        let min_rect = Rect::from_min_size(ui.min_rect().min, min_surface_size);
 
         if false {
             ui.debug_painter()

@@ -324,7 +324,7 @@ Most settings in `NativeOptions` have been moved to `NativeOptions::viewport`, w
 -    initial_window_size: Some(egui::vec2(320.0, 240.0)),
 -    drag_and_drop_support: true,
 +    viewport: egui::ViewportBuilder::default()
-+        .with_inner_size([320.0, 240.0])
++        .with_surface_size([320.0, 240.0])
 +        .with_drag_and_drop(true),
      ..Default::default()
  };

@@ -21,7 +21,7 @@ impl crate::Demo for ExtraViewport {
             egui::ViewportId(id),
             egui::ViewportBuilder::default()
                 .with_title(self.name())
-                .with_inner_size([400.0, 512.0]),
+                .with_surface_size([400.0, 512.0]),
             |ui, class| {
                 if class == egui::ViewportClass::EmbeddedWindow {
                     // Not a real viewport

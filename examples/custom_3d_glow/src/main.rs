@@ -11,7 +11,7 @@ use std::sync::Arc;
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([350.0, 380.0]),
+        viewport: egui::ViewportBuilder::default().with_surface_size([350.0, 380.0]),
         multisampling: 4,
         renderer: eframe::Renderer::Glow,
         ..Default::default()

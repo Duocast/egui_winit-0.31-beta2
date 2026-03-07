@@ -28,7 +28,7 @@ pub fn viewport_builder(
     // Always use the default window size / position on iOS. Trying to restore the previous position
     // causes the window to be shown too small.
     #[cfg(not(target_os = "ios"))]
-    let inner_size_points = if let Some(mut window_settings) = window_settings {
+    let surface_size_points = if let Some(mut window_settings) = window_settings {
         // Restore pos/size from previous session
 
         if clamp_size_to_monitor_size {
@@ -44,30 +44,30 @@ pub fn viewport_builder(
             event_loop,
             viewport_builder,
         );
-        window_settings.inner_size_points()
+        window_settings.surface_size_points()
     } else {
         if let Some(pos) = viewport_builder.position {
             viewport_builder = viewport_builder.with_position(pos);
         }
 
-        if clamp_size_to_monitor_size && let Some(initial_window_size) = viewport_builder.inner_size
+        if clamp_size_to_monitor_size && let Some(initial_window_size) = viewport_builder.surface_size
         {
             let initial_window_size = egui::NumExt::at_most(
                 initial_window_size,
                 largest_monitor_point_size(egui_zoom_factor, event_loop),
             );
-            viewport_builder = viewport_builder.with_inner_size(initial_window_size);
+            viewport_builder = viewport_builder.with_surface_size(initial_window_size);
         }
 
-        viewport_builder.inner_size
+        viewport_builder.surface_size
     };
 
     #[cfg(not(target_os = "ios"))]
     if native_options.centered {
         profiling::scope!("center");
         let _ = event_loop;
-        let inner_size = inner_size_points.unwrap_or(egui::Vec2 { x: 800.0, y: 600.0 });
-        viewport_builder = viewport_builder.with_position([inner_size.x * 0.5, inner_size.y * 0.5]);
+        let surface_size = surface_size_points.unwrap_or(egui::Vec2 { x: 800.0, y: 600.0 });
+        viewport_builder = viewport_builder.with_position([surface_size.x * 0.5, surface_size.y * 0.5]);
     }
 
     match std::mem::take(&mut native_options.window_builder) {

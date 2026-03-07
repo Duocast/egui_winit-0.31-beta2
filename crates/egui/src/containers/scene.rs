@@ -46,7 +46,7 @@ fn fit_to_rect_in_scene(
 pub struct Scene {
     zoom_range: Rangef,
     sense: Sense,
-    max_inner_size: Vec2,
+    max_surface_size: Vec2,
     drag_pan_buttons: DragPanButtons,
 }
 
@@ -78,7 +78,7 @@ impl Default for Scene {
         Self {
             zoom_range: Rangef::new(f32::EPSILON, 1.0),
             sense: Sense::click_and_drag(),
-            max_inner_size: Vec2::splat(1000.0),
+            max_surface_size: Vec2::splat(1000.0),
             drag_pan_buttons: DragPanButtons::all(),
         }
     }
@@ -116,8 +116,8 @@ impl Scene {
 
     /// Set the maximum size of the inner [`Ui`] that will be created.
     #[inline]
-    pub fn max_inner_size(mut self, max_inner_size: impl Into<Vec2>) -> Self {
-        self.max_inner_size = max_inner_size.into();
+    pub fn max_surface_size(mut self, max_surface_size: impl Into<Vec2>) -> Self {
+        self.max_surface_size = max_surface_size.into();
         self
     }
 
@@ -196,7 +196,7 @@ impl Scene {
         let mut local_ui = parent_ui.new_child(
             UiBuilder::new()
                 .layer_id(scene_layer_id)
-                .max_rect(Rect::from_min_size(Pos2::ZERO, self.max_inner_size))
+                .max_rect(Rect::from_min_size(Pos2::ZERO, self.max_surface_size))
                 .sense(self.sense),
         );
 

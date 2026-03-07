@@ -1438,7 +1438,7 @@ impl GlutinWindowContext {
             );
 
             if let Some(window) = &viewport.window {
-                let old_inner_size = window.surface_size();
+                let old_surface_size = window.surface_size();
 
                 viewport.deferred_commands.append(&mut commands);
 
@@ -1452,9 +1452,9 @@ impl GlutinWindowContext {
 
                 // For Wayland : https://github.com/emilk/egui/issues/4196
                 if cfg!(target_os = "linux") {
-                    let new_inner_size = window.surface_size();
-                    if new_inner_size != old_inner_size {
-                        self.resize(viewport_id, new_inner_size);
+                    let new_surface_size = window.surface_size();
+                    if new_surface_size != old_surface_size {
+                        self.resize(viewport_id, new_surface_size);
                     }
                 }
             }

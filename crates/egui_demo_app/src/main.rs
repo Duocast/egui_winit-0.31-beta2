@@ -53,7 +53,7 @@ fn main() {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1280.0, 1024.0])
+            .with_surface_size([1280.0, 1024.0])
             .with_drag_and_drop(true),
 
         #[cfg(feature = "wgpu")]
